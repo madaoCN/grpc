@@ -31,9 +31,9 @@
 
 static void test_compression_algorithm_parse(void) {
   size_t i;
-  const char* valid_names[] = {"identity", "gzip", "deflate", "stream/gzip"};
+  const char* valid_names[] = {"identity", "gzip", "deflate", "confuse", "stream/gzip"};
   const grpc_compression_algorithm valid_algorithms[] = {
-      GRPC_COMPRESS_NONE, GRPC_COMPRESS_GZIP, GRPC_COMPRESS_DEFLATE,
+      GRPC_COMPRESS_NONE, GRPC_COMPRESS_GZIP, GRPC_COMPRESS_DEFLATE, GRPC_COMPRESS_CONFUSE,
       GRPC_COMPRESS_STREAM_GZIP};
   const char* invalid_names[] = {"gzip2", "foo", "", "2gzip"};
 
@@ -63,9 +63,9 @@ static void test_compression_algorithm_name(void) {
   int success;
   const char* name;
   size_t i;
-  const char* valid_names[] = {"identity", "gzip", "deflate", "stream/gzip"};
+  const char* valid_names[] = {"identity", "gzip", "deflate", "confuse", "stream/gzip"};
   const grpc_compression_algorithm valid_algorithms[] = {
-      GRPC_COMPRESS_NONE, GRPC_COMPRESS_GZIP, GRPC_COMPRESS_DEFLATE,
+      GRPC_COMPRESS_NONE, GRPC_COMPRESS_GZIP, GRPC_COMPRESS_DEFLATE, GRPC_COMPRESS_CONFUSE,
       GRPC_COMPRESS_STREAM_GZIP};
 
   gpr_log(GPR_DEBUG, "test_compression_algorithm_name");

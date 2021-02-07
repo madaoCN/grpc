@@ -115,7 +115,7 @@ static grpc_slice repeated(char c, size_t length) {
 
 static compressability get_compressability(
     test_value id, grpc_message_compression_algorithm algorithm) {
-  if (algorithm == GRPC_MESSAGE_COMPRESS_NONE) return SHOULD_NOT_COMPRESS;
+  if (algorithm == GRPC_MESSAGE_COMPRESS_NONE || algorithm == GRPC_MESSAGE_COMPRESS_CONFUSE) return SHOULD_NOT_COMPRESS;
   switch (id) {
     case ONE_A:
       return SHOULD_NOT_COMPRESS;
@@ -312,6 +312,48 @@ static void test_bad_decompression_algorithm(void) {
   grpc_slice_buffer_destroy(&output);
 }
 
+
+/* coustom compressosr*/
+int compress(grpc_slice_buffer* input, grpc_slice_buffer* output) {
+
+  return 0;
+}
+
+int decommpress(grpc_slice_buffer* input, grpc_slice_buffer* output) {
+
+  return 0;
+}
+
+static void test_tiny_data_register_compressor_compress(void) {
+  grpc_slice_buffer input;
+  grpc_slice_buffer output;
+
+  grpc_slice_buffer_init(&input);
+  grpc_slice_buffer_init(&output);
+  grpc_slice_buffer_add(&input, create_test_value(ONE_A));
+
+  // regster compressor
+  grpc_message_compressor_vtable vtable;
+  vtable.name = "confuse";
+  vtable.compress = compress;
+  vtable.decompress = decommpress;
+
+  grpc_compression_register_compressor(&vtable);
+
+  for (int i = 0; i < GRPC_MESSAGE_COMPRESS_ALGORITHMS_COUNT; i++) {
+    if (i == GRPC_MESSAGE_COMPRESS_NONE) continue;
+    grpc_core::ExecCtx exec_ctx;
+    GPR_ASSERT(0 == grpc_msg_compress(
+
+        static_cast<grpc_message_compression_algorithm>(i),
+        &input, &output));
+    GPR_ASSERT(1 == output.count);
+  }
+
+  grpc_slice_buffer_destroy(&input);
+  grpc_slice_buffer_destroy(&output);
+}
+
 int main(int argc, char** argv) {
   unsigned i, j, k, m;
   grpc_slice_split_mode uncompressed_split_modes[] = {
@@ -348,6 +390,7 @@ int main(int argc, char** argv) {
   test_bad_decompression_data_trailing_garbage();
   test_bad_compression_algorithm();
   test_bad_decompression_algorithm();
+  test_tiny_data_register_compressor_compress();
   grpc_shutdown();
 
   return 0;

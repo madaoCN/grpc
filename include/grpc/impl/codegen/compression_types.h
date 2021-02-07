@@ -120,7 +120,7 @@ typedef struct grpc_message_compressor_vtable {
   /*
    * compressor name
    */
-  char *name;
+  const char *name;
 } grpc_message_compressor_vtable;
 
 #ifdef __cplusplus
