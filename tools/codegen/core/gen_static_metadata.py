@@ -72,6 +72,7 @@ CONFIG = [
     # compression algorithm names
     'deflate',
     'gzip',
+    'confuse',
     'stream/gzip',
     # metadata elements
     # begin hpack static elements
@@ -91,6 +92,7 @@ CONFIG = [
     (':status', '500'),
     ('accept-charset', ''),
     ('accept-encoding', 'gzip, deflate'),
+    ('accept-encoding', 'confuse'),
     ('accept-language', ''),
     ('accept-ranges', ''),
     ('accept', ''),
@@ -143,6 +145,7 @@ CONFIG = [
     ('grpc-encoding', 'identity'),
     ('grpc-encoding', 'gzip'),
     ('grpc-encoding', 'deflate'),
+    ('grpc-encoding', 'confuse'),
     ('te', 'trailers'),
     ('content-type', 'application/grpc'),
     (':scheme', 'grpc'),
@@ -150,6 +153,7 @@ CONFIG = [
     ('accept-encoding', ''),
     ('content-encoding', 'identity'),
     ('content-encoding', 'gzip'),
+    ('content-encoding', 'confuse'),
     ('lb-cost-bin', ''),
 ]
 

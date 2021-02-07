@@ -20,6 +20,7 @@
 #define GRPC_IMPL_CODEGEN_COMPRESSION_TYPES_H
 
 #include <grpc/impl/codegen/port_platform.h>
+#include <grpc/slice_buffer.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,6 +59,8 @@ typedef enum {
   GRPC_COMPRESS_NONE = 0,
   GRPC_COMPRESS_DEFLATE,
   GRPC_COMPRESS_GZIP,
+  /* EXPERIMENTAL: confuse compression is currently experimental. */
+  GRPC_COMPRESS_CONFUSE,
   /* EXPERIMENTAL: Stream compression is currently experimental. */
   GRPC_COMPRESS_STREAM_GZIP,
   /* TODO(ctiller): snappy */
@@ -100,6 +103,25 @@ typedef struct grpc_compression_options {
     grpc_compression_algorithm algorithm;
   } default_algorithm;
 } grpc_compression_options;
+
+typedef struct grpc_message_compressor_vtable {
+
+  /* compress 'input' to 'output'.
+   On success, appends compressed slices to output and returns 1.
+   On failure, appends uncompressed slices to output and returns 0. */
+  int (*compress)(grpc_slice_buffer* input, grpc_slice_buffer* output);
+
+  /* decompress 'input' to 'output'.
+   On success, appends slices to output and returns 1.
+   On failure, output is unchanged, and returns 0. */
+  int (*decompress)(grpc_slice_buffer * input,
+                            grpc_slice_buffer* output);
+
+  /*
+   * compressor name
+   */
+  char *name;
+} grpc_message_compressor_vtable;
 
 #ifdef __cplusplus
 }

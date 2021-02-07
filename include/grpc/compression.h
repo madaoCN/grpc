@@ -68,6 +68,12 @@ GRPCAPI void grpc_compression_options_disable_algorithm(
 GRPCAPI int grpc_compression_options_is_algorithm_enabled(
     const grpc_compression_options* opts, grpc_compression_algorithm algorithm);
 
+/** register a compressor using 'grpc_message_compressor_vtable'. */
+GRPCAPI void grpc_compression_register_compressor(grpc_message_compressor_vtable *vtable);
+
+/** return compressor for `compressor_name`. */
+GRPCAPI const grpc_message_compressor_vtable *grpc_compression_compressor(const char *compressor_name);
+
 #ifdef __cplusplus
 }
 #endif

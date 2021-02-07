@@ -30,9 +30,11 @@
 #include "src/core/lib/surface/api_trace.h"
 #include "src/core/lib/transport/static_metadata.h"
 
+#define MAX_COMPRESSORS 128
+
 int grpc_compression_algorithm_is_message(
     grpc_compression_algorithm algorithm) {
-  return (algorithm >= GRPC_COMPRESS_DEFLATE && algorithm <= GRPC_COMPRESS_GZIP)
+  return (algorithm >= GRPC_COMPRESS_DEFLATE && algorithm <= GRPC_COMPRESS_CONFUSE)
              ? 1
              : 0;
 }
@@ -51,6 +53,9 @@ int grpc_compression_algorithm_parse(grpc_slice name,
     return 1;
   } else if (grpc_slice_eq_static_interned(name, GRPC_MDSTR_GZIP)) {
     *algorithm = GRPC_COMPRESS_GZIP;
+    return 1;
+  } else if (grpc_slice_eq_static_interned(name, GRPC_MDSTR_CONFUSE)) {
+    *algorithm = GRPC_COMPRESS_CONFUSE;
     return 1;
   } else if (grpc_slice_eq_static_interned(name,
                                            GRPC_MDSTR_STREAM_SLASH_GZIP)) {
@@ -74,6 +79,9 @@ int grpc_compression_algorithm_name(grpc_compression_algorithm algorithm,
       return 1;
     case GRPC_COMPRESS_GZIP:
       *name = "gzip";
+      return 1;
+    case GRPC_COMPRESS_CONFUSE:
+      *name = "confuse";
       return 1;
     case GRPC_COMPRESS_STREAM_GZIP:
       *name = "stream/gzip";
@@ -140,6 +148,8 @@ grpc_slice grpc_compression_algorithm_slice(
       return GRPC_MDSTR_DEFLATE;
     case GRPC_COMPRESS_GZIP:
       return GRPC_MDSTR_GZIP;
+    case GRPC_COMPRESS_CONFUSE:
+      return GRPC_MDSTR_CONFUSE;
     case GRPC_COMPRESS_STREAM_GZIP:
       return GRPC_MDSTR_STREAM_SLASH_GZIP;
     case GRPC_COMPRESS_ALGORITHMS_COUNT:
@@ -159,6 +169,9 @@ grpc_compression_algorithm grpc_compression_algorithm_from_slice(
   if (grpc_slice_eq_static_interned(str, GRPC_MDSTR_GZIP)) {
     return GRPC_COMPRESS_GZIP;
   }
+  if (grpc_slice_eq_static_interned(str, GRPC_MDSTR_CONFUSE)) {
+    return GRPC_COMPRESS_CONFUSE;
+  }
   if (grpc_slice_eq_static_interned(str, GRPC_MDSTR_STREAM_SLASH_GZIP)) {
     return GRPC_COMPRESS_STREAM_GZIP;
   }
@@ -174,10 +187,36 @@ grpc_mdelem grpc_compression_encoding_mdelem(
       return GRPC_MDELEM_GRPC_ENCODING_DEFLATE;
     case GRPC_COMPRESS_GZIP:
       return GRPC_MDELEM_GRPC_ENCODING_GZIP;
+    case GRPC_COMPRESS_CONFUSE:
+      return GRPC_MDELEM_GRPC_ENCODING_CONFUSE;
     case GRPC_COMPRESS_STREAM_GZIP:
       return GRPC_MDELEM_GRPC_ENCODING_GZIP;
     default:
       break;
   }
   return GRPC_MDNULL;
+}
+
+static grpc_message_compressor_vtable g_all_of_the_compressors[MAX_COMPRESSORS];
+static int g_number_of_compressors = 0;
+
+void grpc_compression_register_compressor(grpc_message_compressor_vtable *vtable) {
+
+  GRPC_API_TRACE("grpc_compression_register_compressor(compress=%p, decompress=%p, name:%s)", 3,
+                 ((void*)(intptr_t)vtable->compress, (void*)(intptr_t)vtable->decompress, vtable->name));
+  GPR_ASSERT(g_number_of_compressors != MAX_COMPRESSORS);
+  g_all_of_the_compressors[g_number_of_compressors].compress = vtable->compress;
+  g_all_of_the_compressors[g_number_of_compressors].decompress = vtable->decompress;
+  g_all_of_the_compressors[g_number_of_compressors].name = vtable->name;
+  g_number_of_compressors++;
+}
+
+const grpc_message_compressor_vtable *grpc_compression_compressor(const char *compressor_name) {
+  for (int i = 0; i < g_number_of_compressors; ++i) {
+    grpc_message_compressor_vtable vtable = g_all_of_the_compressors[i];
+    if (strcmp(vtable.name, compressor_name) == 0) {
+      return &vtable;
+    }
+  }
+  return nullptr;
 }
