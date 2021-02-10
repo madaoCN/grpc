@@ -232,7 +232,7 @@ grpc_message_compression_algorithm grpc_message_compression_algorithm_for_level(
    * This is simplistic and we will probably want to introduce other dimensions
    * in the future (cpu/memory cost, etc). */
   const grpc_message_compression_algorithm algos_ranking[] = {
-      GRPC_MESSAGE_COMPRESS_GZIP, GRPC_MESSAGE_COMPRESS_CONFUSE, GRPC_MESSAGE_COMPRESS_DEFLATE};
+      GRPC_MESSAGE_COMPRESS_GZIP, GRPC_MESSAGE_COMPRESS_DEFLATE};
 
   /* intersect algos_ranking with the supported ones keeping the ranked order */
   grpc_message_compression_algorithm

@@ -34,7 +34,7 @@
 #include "src/core/lib/transport/metadata.h"
 
 static_assert(std::is_trivially_destructible<grpc_core::StaticMetadataSlice>::value, "grpc_core::StaticMetadataSlice must be trivially destructible.");
-#define GRPC_STATIC_MDSTR_COUNT 111
+#define GRPC_STATIC_MDSTR_COUNT 118
 
 void grpc_init_static_metadata_ctx(void);
 void grpc_destroy_static_metadata_ctx(void);
@@ -274,6 +274,20 @@ inline const grpc_core::StaticMetadataSlice* grpc_static_slice_table() {
 #define GRPC_MDSTR_DEFLATE_COMMA_GZIP (grpc_static_slice_table()[109])
 /* "identity,deflate,gzip" */
 #define GRPC_MDSTR_IDENTITY_COMMA_DEFLATE_COMMA_GZIP (grpc_static_slice_table()[110])
+/* "identity,confuse" */
+#define GRPC_MDSTR_IDENTITY_COMMA_CONFUSE (grpc_static_slice_table()[111])
+/* "deflate,confuse" */
+#define GRPC_MDSTR_DEFLATE_COMMA_CONFUSE (grpc_static_slice_table()[112])
+/* "identity,deflate,confuse" */
+#define GRPC_MDSTR_IDENTITY_COMMA_DEFLATE_COMMA_CONFUSE (grpc_static_slice_table()[113])
+/* "gzip,confuse" */
+#define GRPC_MDSTR_GZIP_COMMA_CONFUSE (grpc_static_slice_table()[114])
+/* "identity,gzip,confuse" */
+#define GRPC_MDSTR_IDENTITY_COMMA_GZIP_COMMA_CONFUSE (grpc_static_slice_table()[115])
+/* "deflate,gzip,confuse" */
+#define GRPC_MDSTR_DEFLATE_COMMA_GZIP_COMMA_CONFUSE (grpc_static_slice_table()[116])
+/* "identity,deflate,gzip,confuse" */
+#define GRPC_MDSTR_IDENTITY_COMMA_DEFLATE_COMMA_GZIP_COMMA_CONFUSE (grpc_static_slice_table()[117])
 
 
 namespace grpc_core {
@@ -293,7 +307,7 @@ inline grpc_core::StaticSliceRefcount* grpc_static_metadata_refcounts() {
 #define GRPC_STATIC_METADATA_INDEX(static_slice) \
 (reinterpret_cast<grpc_core::StaticSliceRefcount*>((static_slice).refcount)->index)
 
-#define GRPC_STATIC_MDELEM_COUNT 88
+#define GRPC_STATIC_MDELEM_COUNT 96
 
 namespace grpc_core {
 extern StaticMetadata* g_static_mdelem_table;
@@ -483,12 +497,28 @@ extern uintptr_t grpc_static_mdelem_user_data[GRPC_STATIC_MDELEM_COUNT];
 #define GRPC_MDELEM_GRPC_ACCEPT_ENCODING_DEFLATE_COMMA_GZIP (grpc_static_mdelem_manifested()[83])
 /* "grpc-accept-encoding": "identity,deflate,gzip" */
 #define GRPC_MDELEM_GRPC_ACCEPT_ENCODING_IDENTITY_COMMA_DEFLATE_COMMA_GZIP (grpc_static_mdelem_manifested()[84])
+/* "grpc-accept-encoding": "confuse" */
+#define GRPC_MDELEM_GRPC_ACCEPT_ENCODING_CONFUSE (grpc_static_mdelem_manifested()[85])
+/* "grpc-accept-encoding": "identity,confuse" */
+#define GRPC_MDELEM_GRPC_ACCEPT_ENCODING_IDENTITY_COMMA_CONFUSE (grpc_static_mdelem_manifested()[86])
+/* "grpc-accept-encoding": "deflate,confuse" */
+#define GRPC_MDELEM_GRPC_ACCEPT_ENCODING_DEFLATE_COMMA_CONFUSE (grpc_static_mdelem_manifested()[87])
+/* "grpc-accept-encoding": "identity,deflate,confuse" */
+#define GRPC_MDELEM_GRPC_ACCEPT_ENCODING_IDENTITY_COMMA_DEFLATE_COMMA_CONFUSE (grpc_static_mdelem_manifested()[88])
+/* "grpc-accept-encoding": "gzip,confuse" */
+#define GRPC_MDELEM_GRPC_ACCEPT_ENCODING_GZIP_COMMA_CONFUSE (grpc_static_mdelem_manifested()[89])
+/* "grpc-accept-encoding": "identity,gzip,confuse" */
+#define GRPC_MDELEM_GRPC_ACCEPT_ENCODING_IDENTITY_COMMA_GZIP_COMMA_CONFUSE (grpc_static_mdelem_manifested()[90])
+/* "grpc-accept-encoding": "deflate,gzip,confuse" */
+#define GRPC_MDELEM_GRPC_ACCEPT_ENCODING_DEFLATE_COMMA_GZIP_COMMA_CONFUSE (grpc_static_mdelem_manifested()[91])
+/* "grpc-accept-encoding": "identity,deflate,gzip,confuse" */
+#define GRPC_MDELEM_GRPC_ACCEPT_ENCODING_IDENTITY_COMMA_DEFLATE_COMMA_GZIP_COMMA_CONFUSE (grpc_static_mdelem_manifested()[92])
 /* "accept-encoding": "identity" */
-#define GRPC_MDELEM_ACCEPT_ENCODING_IDENTITY (grpc_static_mdelem_manifested()[85])
+#define GRPC_MDELEM_ACCEPT_ENCODING_IDENTITY (grpc_static_mdelem_manifested()[93])
 /* "accept-encoding": "gzip" */
-#define GRPC_MDELEM_ACCEPT_ENCODING_GZIP (grpc_static_mdelem_manifested()[86])
+#define GRPC_MDELEM_ACCEPT_ENCODING_GZIP (grpc_static_mdelem_manifested()[94])
 /* "accept-encoding": "identity,gzip" */
-#define GRPC_MDELEM_ACCEPT_ENCODING_IDENTITY_COMMA_GZIP (grpc_static_mdelem_manifested()[87])
+#define GRPC_MDELEM_ACCEPT_ENCODING_IDENTITY_COMMA_GZIP (grpc_static_mdelem_manifested()[95])
 
 grpc_mdelem grpc_static_mdelem_for_static_strings(intptr_t a, intptr_t b);
 typedef enum {
@@ -552,7 +582,7 @@ typedef union {
 #define GRPC_BATCH_INDEX_OF(slice) \
 (GRPC_IS_STATIC_METADATA_STRING((slice))&&reinterpret_cast<grpc_core::StaticSliceRefcount*>((slice).refcount)->index<=static_cast<uint32_t>(GRPC_BATCH_CALLOUTS_COUNT)?static_cast<grpc_metadata_batch_callouts_index>(reinterpret_cast<grpc_core::StaticSliceRefcount*>((slice).refcount)->index):GRPC_BATCH_CALLOUTS_COUNT)
 
-extern const uint8_t grpc_static_accept_encoding_metadata[8];
+extern const uint8_t grpc_static_accept_encoding_metadata[16];
 #define GRPC_MDELEM_ACCEPT_ENCODING_FOR_ALGORITHMS(algs) (GRPC_MAKE_MDELEM(&grpc_static_mdelem_table()[grpc_static_accept_encoding_metadata[(algs)]].data(), GRPC_MDELEM_STORAGE_STATIC))
 
 extern const uint8_t grpc_static_accept_stream_encoding_metadata[4];

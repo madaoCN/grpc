@@ -203,7 +203,7 @@ int grpc_msg_decompress(grpc_message_compression_algorithm algorithm,
           return vtable->decompress(input, output);
         }
       }
-      return 0;
+      return copy(input, output);
     case GRPC_MESSAGE_COMPRESS_ALGORITHMS_COUNT:
       break;
   }

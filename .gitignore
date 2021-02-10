@@ -147,7 +147,7 @@ bm_*.json
 .history/
 
 # Clion artifacts
-/cmake-build-*
+cmake-build-*
 
 # Benchmark outputs
 BenchmarkDotNet.Artifacts/

@@ -190,6 +190,7 @@ COMPRESSION_ALGORITHMS = [
     'identity',
     'deflate',
     'gzip',
+    'confuse',
 ]
 
 STREAM_COMPRESSION_ALGORITHMS = [
