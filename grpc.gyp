@@ -31,15 +31,6 @@
   },
   'target_defaults': {
     'configurations': {
-      'Debug': {
-        'cflags': [
-          '-O0',
-        ],
-        'defines': [
-          '_DEBUG',
-          'DEBUG',
-        ],
-      },
       'Release': {
         'cflags': [
           '-O2',
@@ -47,6 +38,15 @@
         ],
         'defines': [
           'NDEBUG',
+        ],
+      },
+      'Debug': {
+        'cflags': [
+          '-O0',
+        ],
+        'defines': [
+          '_DEBUG',
+          'DEBUG',
         ],
       },
     },

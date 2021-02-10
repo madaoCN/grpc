@@ -38,11 +38,13 @@ vpath %.proto $(PROTOS_PATH)
 
 all: system-check greeter_client greeter_server
 
+IOS_LINK_FLAG=-framework CoreFoundation
+
 greeter_client: helloworld.pb.o helloworld.grpc.pb.o greeter_client.o
-	$(CXX) $^ $(LDFLAGS) -o $@
+	$(CXX) $^ $(LDFLAGS) ${IOS_LINK_FLAG} -o $@
 
 greeter_server: helloworld.pb.o helloworld.grpc.pb.o greeter_server.o
-	$(CXX) $^ $(LDFLAGS) -o $@
+	$(CXX) $^ $(LDFLAGS) ${IOS_LINK_FLAG} -o $@
 
 .PRECIOUS: %.grpc.pb.cc
 %.grpc.pb.cc: %.proto
