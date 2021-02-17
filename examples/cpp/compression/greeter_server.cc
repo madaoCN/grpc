@@ -41,14 +41,84 @@ class GreeterServiceImpl final : public Greeter::Service {
   Status SayHello(ServerContext* context, const HelloRequest* request,
                   HelloReply* reply) override {
     // Overwrite the call's compression algorithm to DEFLATE.
-    context->set_compression_algorithm(GRPC_COMPRESS_DEFLATE);
+    context->set_compression_algorithm(GRPC_COMPRESS_CONFUSE);
     std::string prefix("Hello ");
     reply->set_message(prefix + request->name());
     return Status::OK;
   }
 };
 
+static void _reverse(uint8_t *input, size_t left, size_t right) {
+    for( ; left < right; left++, right--)
+    {
+        int temp = input[right];
+        input[right] = input[left];
+        input[left] = temp;
+    }
+}
+
+static void reverse_left(uint8_t *input, size_t length, size_t offset) {
+    _reverse(input, 0, offset - 1);
+    _reverse(input, offset, length - 1);
+    _reverse(input,  0, length - 1);
+}
+
+static void reverse_right(uint8_t *input, size_t length, size_t offset) {
+    _reverse(input,  0, length - 1);
+    _reverse(input, 0, offset - 1);
+    _reverse(input, offset, length - 1);
+}
+
+static int copy(grpc_slice_buffer* input, grpc_slice_buffer* output, bool recrsive_left) {
+    for (size_t i = 0; i < input->count; i++) {
+
+        // cumulative sum
+        size_t cumSum = 0;
+        size_t sliceLen = GRPC_SLICE_LENGTH(input->slices[i]);
+        uint8_t *startPtr = GRPC_SLICE_START_PTR(input->slices[i]);
+
+        for (size_t j = 0; j < sliceLen; j ++) {
+            cumSum += startPtr[j];
+        }
+
+        // offset >>
+        size_t offset = cumSum % sliceLen;
+        offset = offset ? offset : sliceLen / 2;
+
+        if (recrsive_left) {
+            reverse_left(startPtr, sliceLen, offset);
+        } else {
+            reverse_right(startPtr, sliceLen, offset);
+        }
+
+        // buffer add
+        grpc_slice_buffer_add(output, grpc_slice_ref(input->slices[i]));
+    }
+
+    return 1;
+}
+
+int compress(grpc_slice_buffer* input, grpc_slice_buffer* output) {
+    std::cout << "compress" << std::endl;
+    return copy(input, output, true);
+}
+
+int decompress(grpc_slice_buffer * input,
+               grpc_slice_buffer* output) {
+    std::cout << "decompress" << std::endl;
+    return copy(input, output, false);
+}
+
 void RunServer() {
+
+    // register
+    grpc_message_compressor_vtable vtable;
+    vtable.name = "confuse";
+    vtable.compress = compress;
+    vtable.decompress = decompress;
+    grpc_compression_register_compressor(&vtable);
+    std::cout << "registered confuse: " << grpc_compression_compressor("confuse") << std::endl;
+
   std::string server_address("0.0.0.0:50051");
   GreeterServiceImpl service;
 
