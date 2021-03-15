@@ -40,7 +40,7 @@ int grpc_compression_algorithm_is_message(
 }
 
 int grpc_compression_algorithm_is_stream(grpc_compression_algorithm algorithm) {
-  return (algorithm == GRPC_COMPRESS_STREAM_GZIP) ? 1 : 0;
+  return (algorithm == GRPC_COMPRESS_STREAM_GZIP || algorithm == GRPC_COMPRESS_STREAM_CONFUSE) ? 1 : 0;
 }
 
 int grpc_compression_algorithm_parse(grpc_slice name,
@@ -60,6 +60,10 @@ int grpc_compression_algorithm_parse(grpc_slice name,
   } else if (grpc_slice_eq_static_interned(name,
                                            GRPC_MDSTR_STREAM_SLASH_GZIP)) {
     *algorithm = GRPC_COMPRESS_STREAM_GZIP;
+    return 1;
+  } else if (grpc_slice_eq_static_interned(name,
+                                           GRPC_MDSTR_STREAM_SLASH_CONFUSE)) {
+    *algorithm = GRPC_COMPRESS_STREAM_CONFUSE;
     return 1;
   } else {
     return 0;
@@ -85,6 +89,9 @@ int grpc_compression_algorithm_name(grpc_compression_algorithm algorithm,
       return 1;
     case GRPC_COMPRESS_STREAM_GZIP:
       *name = "stream/gzip";
+      return 1;
+    case GRPC_COMPRESS_STREAM_CONFUSE:
+      *name = "stream/confuse";
       return 1;
     case GRPC_COMPRESS_ALGORITHMS_COUNT:
       return 0;
@@ -152,6 +159,8 @@ grpc_slice grpc_compression_algorithm_slice(
       return GRPC_MDSTR_CONFUSE;
     case GRPC_COMPRESS_STREAM_GZIP:
       return GRPC_MDSTR_STREAM_SLASH_GZIP;
+    case GRPC_COMPRESS_STREAM_CONFUSE:
+      return GRPC_MDSTR_STREAM_SLASH_CONFUSE;
     case GRPC_COMPRESS_ALGORITHMS_COUNT:
       return grpc_empty_slice();
   }
@@ -175,6 +184,9 @@ grpc_compression_algorithm grpc_compression_algorithm_from_slice(
   if (grpc_slice_eq_static_interned(str, GRPC_MDSTR_STREAM_SLASH_GZIP)) {
     return GRPC_COMPRESS_STREAM_GZIP;
   }
+  if (grpc_slice_eq_static_interned(str, GRPC_MDSTR_STREAM_SLASH_CONFUSE)) {
+    return GRPC_COMPRESS_STREAM_CONFUSE;
+  }
   return GRPC_COMPRESS_ALGORITHMS_COUNT;
 }
 
@@ -191,32 +203,66 @@ grpc_mdelem grpc_compression_encoding_mdelem(
       return GRPC_MDELEM_GRPC_ENCODING_CONFUSE;
     case GRPC_COMPRESS_STREAM_GZIP:
       return GRPC_MDELEM_GRPC_ENCODING_GZIP;
+    case GRPC_COMPRESS_STREAM_CONFUSE:
+      return GRPC_MDELEM_GRPC_ENCODING_CONFUSE;
     default:
       break;
   }
   return GRPC_MDNULL;
 }
 
-static grpc_message_compressor_vtable g_all_of_the_compressors[MAX_COMPRESSORS];
-static int g_number_of_compressors = 0;
+static grpc_message_compressor_vtable g_all_of_the_message_compressors[MAX_COMPRESSORS];
+static int g_number_of_message_compressors = 0;
 
 void grpc_compression_register_compressor(grpc_message_compressor_vtable *vtable) {
 
   GRPC_API_TRACE("grpc_compression_register_compressor(compress=%p, decompress=%p, name:%s)", 3,
-                 ((void*)(intptr_t)vtable->compress, (void*)(intptr_t)vtable->decompress, vtable->name));
-  GPR_ASSERT(g_number_of_compressors != MAX_COMPRESSORS);
-  g_all_of_the_compressors[g_number_of_compressors].compress = vtable->compress;
-  g_all_of_the_compressors[g_number_of_compressors].decompress = vtable->decompress;
-  g_all_of_the_compressors[g_number_of_compressors].name = vtable->name;
-  g_number_of_compressors++;
+                 ((void*)(intptr_t)vtable->compress, (void*)(intptr_t)vtable->decompress, grpc_slice_to_c_string(*vtable->name)));
+  GPR_ASSERT(g_number_of_message_compressors != MAX_COMPRESSORS);
+  g_all_of_the_message_compressors[g_number_of_message_compressors].compress = vtable->compress;
+  g_all_of_the_message_compressors[g_number_of_message_compressors].decompress = vtable->decompress;
+  g_all_of_the_message_compressors[g_number_of_message_compressors].name = vtable->name;
+  g_number_of_message_compressors++;
 }
 
-const grpc_message_compressor_vtable *grpc_compression_compressor(const char *compressor_name) {
-  for (int i = 0; i < g_number_of_compressors; ++i) {
-    grpc_message_compressor_vtable vtable = g_all_of_the_compressors[i];
-    if (strcmp(vtable.name, compressor_name) == 0) {
-      return &vtable;
-    }
+const grpc_message_compressor_vtable *grpc_compression_compressor(const grpc_slice *compressor_name) {
+
+  if (compressor_name == nullptr) {return nullptr;}
+    static grpc_message_compressor_vtable *vtable = nullptr;
+    for (int i = 0; i < g_number_of_message_compressors; ++i) {
+        vtable = &g_all_of_the_message_compressors[i];
+        if (grpc_slice_eq(*vtable->name, *compressor_name)) {
+          return vtable;
+        }
   }
   return nullptr;
+}
+
+static grpc_stream_compressor_vtable g_all_of_the_stream_compressors[MAX_COMPRESSORS];
+static int g_number_of_stream_compressors = 0;
+
+void grpc_stream_compression_register_compressor(grpc_stream_compressor_vtable *vtable) {
+
+    GRPC_API_TRACE("grpc_stream_compression_register_compressor(compress=%p, decompress=%p, context_create=%p, context_destroy=%p, name:%s)", 5,
+                   ((void*)(intptr_t)vtable->compress, (void*)(intptr_t)vtable->decompress,
+                           (void*)(intptr_t)vtable->context_create, (void*)(intptr_t)vtable->context_destroy, grpc_slice_to_c_string(*vtable->name)));
+    GPR_ASSERT(g_number_of_message_compressors != MAX_COMPRESSORS);
+    g_all_of_the_stream_compressors[g_number_of_stream_compressors].compress = vtable->compress;
+    g_all_of_the_stream_compressors[g_number_of_stream_compressors].decompress = vtable->decompress;
+    g_all_of_the_stream_compressors[g_number_of_stream_compressors].context_create = vtable->context_create;
+    g_all_of_the_stream_compressors[g_number_of_stream_compressors].context_destroy = vtable->context_destroy;
+    g_all_of_the_stream_compressors[g_number_of_stream_compressors].name = vtable->name;
+    g_number_of_stream_compressors++;
+}
+
+const grpc_stream_compressor_vtable *grpc_stream_compression_compressor(const grpc_slice *compressor_name) {
+    if (compressor_name == nullptr) {return nullptr;}
+    static grpc_stream_compressor_vtable *vtable = nullptr;
+    for (int i = 0; i < g_number_of_message_compressors; ++i) {
+        vtable = &g_all_of_the_stream_compressors[i];
+        if (grpc_slice_eq(*vtable->name, *compressor_name)) {
+            return vtable;
+        }
+    }
+    return nullptr;
 }

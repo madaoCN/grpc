@@ -72,7 +72,13 @@ GRPCAPI int grpc_compression_options_is_algorithm_enabled(
 GRPCAPI void grpc_compression_register_compressor(grpc_message_compressor_vtable *vtable);
 
 /** return compressor for `compressor_name`. */
-GRPCAPI const grpc_message_compressor_vtable *grpc_compression_compressor(const char *compressor_name);
+GRPCAPI const grpc_message_compressor_vtable *grpc_compression_compressor(const grpc_slice *compressor_name);
+
+/** register a stream compressor using 'grpc_message_compressor_vtable'. */
+GRPCAPI void grpc_stream_compression_register_compressor(grpc_stream_compressor_vtable *vtable);
+
+/** return stream compressor for `compressor_name`. */
+GRPCAPI const grpc_stream_compressor_vtable *grpc_stream_compression_compressor(const grpc_slice *compressor_name);
 
 #ifdef __cplusplus
 }

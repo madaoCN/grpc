@@ -74,6 +74,7 @@ CONFIG = [
     'gzip',
     'confuse',
     'stream/gzip',
+    'stream/confuse',
     # metadata elements
     # begin hpack static elements
     (':authority', ''),
@@ -196,6 +197,7 @@ COMPRESSION_ALGORITHMS = [
 STREAM_COMPRESSION_ALGORITHMS = [
     'identity',
     'gzip',
+    'confuse',
 ]
 
 

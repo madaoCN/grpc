@@ -57,6 +57,9 @@ grpc_stream_compression_algorithm grpc_stream_compression_algorithm_from_slice(
   if (grpc_slice_eq_static_interned(str, GRPC_MDSTR_GZIP)) {
     return GRPC_STREAM_COMPRESS_GZIP;
   }
+    if (grpc_slice_eq_static_interned(str, GRPC_MDSTR_CONFUSE)) {
+        return GRPC_STREAM_COMPRESS_CONFUSE;
+    }
   return GRPC_STREAM_COMPRESS_ALGORITHMS_COUNT;
 }
 
@@ -84,6 +87,8 @@ grpc_mdelem grpc_stream_compression_encoding_mdelem(
       return GRPC_MDELEM_CONTENT_ENCODING_IDENTITY;
     case GRPC_STREAM_COMPRESS_GZIP:
       return GRPC_MDELEM_CONTENT_ENCODING_GZIP;
+    case GRPC_STREAM_COMPRESS_CONFUSE:
+      return GRPC_MDELEM_CONTENT_ENCODING_CONFUSE;
     default:
       break;
   }
@@ -113,6 +118,8 @@ grpc_compression_algorithm_to_stream_compression_algorithm(
   switch (algo) {
     case GRPC_COMPRESS_STREAM_GZIP:
       return GRPC_STREAM_COMPRESS_GZIP;
+    case GRPC_COMPRESS_STREAM_CONFUSE:
+      return GRPC_STREAM_COMPRESS_CONFUSE;
     default:
       return GRPC_STREAM_COMPRESS_NONE;
   }
@@ -154,6 +161,9 @@ int grpc_compression_algorithm_from_message_stream_compression_algorithm(
         return 1;
       case GRPC_STREAM_COMPRESS_GZIP:
         *algorithm = GRPC_COMPRESS_STREAM_GZIP;
+        return 1;
+      case GRPC_STREAM_COMPRESS_CONFUSE:
+        *algorithm = GRPC_COMPRESS_STREAM_CONFUSE;
         return 1;
       default:
         *algorithm = GRPC_COMPRESS_NONE;
@@ -292,8 +302,11 @@ int grpc_stream_compression_algorithm_parse(
     *algorithm = GRPC_STREAM_COMPRESS_NONE;
     return 1;
   } else if (grpc_slice_eq_static_interned(value, GRPC_MDSTR_GZIP)) {
-    *algorithm = GRPC_STREAM_COMPRESS_GZIP;
-    return 1;
+      *algorithm = GRPC_STREAM_COMPRESS_GZIP;
+      return 1;
+  } else if (grpc_slice_eq_static_interned(value, GRPC_MDSTR_CONFUSE)) {
+      *algorithm = GRPC_STREAM_COMPRESS_CONFUSE;
+      return 1;
   } else {
     return 0;
   }

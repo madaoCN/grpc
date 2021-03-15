@@ -22,6 +22,7 @@
 
 #include "src/core/lib/compression/stream_compression.h"
 #include "src/core/lib/compression/stream_compression_gzip.h"
+#include "src/core/lib/compression/compression_internal.h"
 #include "src/core/lib/slice/slice_utils.h"
 
 extern const grpc_stream_compression_vtable
@@ -52,6 +53,30 @@ grpc_stream_compression_context* grpc_stream_compression_context_create(
     case GRPC_STREAM_COMPRESSION_GZIP_COMPRESS:
     case GRPC_STREAM_COMPRESSION_GZIP_DECOMPRESS:
       return grpc_stream_compression_gzip_vtable.context_create(method);
+    case GRPC_STREAM_COMPRESSION_CONFUSE_COMPRESS:
+    case GRPC_STREAM_COMPRESSION_CONFUSE_DECOMPRESS:
+    {
+        // if registerd algorithm
+        const char *al_name;
+        grpc_slice al_slice = grpc_slice_from_static_string(al_name);
+        if (grpc_compression_algorithm_name(GRPC_COMPRESS_STREAM_CONFUSE, &al_name) != 0) {
+            const grpc_stream_compressor_vtable *vtable = grpc_stream_compression_compressor(&al_slice);
+            // trans to grpc_stream_compression_vtable
+            grpc_stream_compression_vtable copy_vtable;
+            copy_vtable.context_create = reinterpret_cast<grpc_stream_compression_context *(*)(
+                    grpc_stream_compression_method)>(vtable->context_create);
+            copy_vtable.context_destroy = reinterpret_cast<void (*)(
+                    grpc_stream_compression_context *)>(vtable->context_destroy);
+            copy_vtable.compress = reinterpret_cast<bool (*)(grpc_stream_compression_context *, grpc_slice_buffer *,
+                                                             grpc_slice_buffer *, size_t *, size_t,
+                                                             grpc_stream_compression_flush)>(vtable->compress);
+            copy_vtable.decompress = reinterpret_cast<bool (*)(grpc_stream_compression_context *, grpc_slice_buffer *,
+                                                               grpc_slice_buffer *, size_t *, size_t,
+                                                               bool *)>(vtable->decompress);
+            return copy_vtable.context_create(method);
+        }
+        return grpc_stream_compression_identity_vtable.context_create(method);
+    }
     default:
       gpr_log(GPR_ERROR, "Unknown stream compression method: %d", method);
       return nullptr;
@@ -73,6 +98,10 @@ int grpc_stream_compression_method_parse(
   } else if (grpc_slice_eq_static_interned(value, GRPC_MDSTR_GZIP)) {
     *method = is_compress ? GRPC_STREAM_COMPRESSION_GZIP_COMPRESS
                           : GRPC_STREAM_COMPRESSION_GZIP_DECOMPRESS;
+    return 1;
+  } else if (grpc_slice_eq_static_interned(value, GRPC_MDSTR_CONFUSE)) {
+    *method = is_compress ? GRPC_STREAM_COMPRESSION_CONFUSE_COMPRESS
+                            : GRPC_STREAM_COMPRESSION_CONFUSE_DECOMPRESS;
     return 1;
   } else {
     return 0;

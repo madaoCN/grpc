@@ -43,6 +43,7 @@ typedef enum {
 typedef enum {
   GRPC_STREAM_COMPRESS_NONE = 0,
   GRPC_STREAM_COMPRESS_GZIP,
+  GRPC_STREAM_COMPRESS_CONFUSE,
   GRPC_STREAM_COMPRESS_ALGORITHMS_COUNT
 } grpc_stream_compression_algorithm;
 

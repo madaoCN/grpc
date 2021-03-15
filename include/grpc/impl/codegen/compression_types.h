@@ -63,6 +63,7 @@ typedef enum {
   GRPC_COMPRESS_CONFUSE,
   /* EXPERIMENTAL: Stream compression is currently experimental. */
   GRPC_COMPRESS_STREAM_GZIP,
+  GRPC_COMPRESS_STREAM_CONFUSE,
   /* TODO(ctiller): snappy */
   GRPC_COMPRESS_ALGORITHMS_COUNT
 } grpc_compression_algorithm;
@@ -120,8 +121,51 @@ typedef struct grpc_message_compressor_vtable {
   /*
    * compressor name
    */
-  const char *name;
+  const grpc_slice *name;
 } grpc_message_compressor_vtable;
+
+
+typedef struct grpc_stream_compressor_vtable grpc_stream_compressor_vtable;
+
+/* Stream compression/decompression context */
+typedef struct grpc_stream_compressor_context {
+    const grpc_stream_compressor_vtable* vtable;
+} grpc_stream_compressor_context;
+
+typedef enum grpc_stream_compressor_method {
+    GRPC_STREAM_COMPRESSOR_IDENTITY_COMPRESS = 0,
+    GRPC_STREAM_COMPRESSOR_IDENTITY_DECOMPRESS,
+    GRPC_STREAM_COMPRESSOR_GZIP_COMPRESS,
+    GRPC_STREAM_COMPRESSOR_GZIP_DECOMPRESS,
+    GRPC_STREAM_COMPRESSOR_CONFUSE_COMPRESS,
+    GRPC_STREAM_COMPRESSOR_CONFUSE_DECOMPRESS,
+    GRPC_STREAM_COMPRESSOR_METHOD_COUNT
+} grpc_stream_compressor_method;
+
+typedef enum grpc_stream_compressor_flush {
+    GRPC_STREAM_COMPRESSOR_FLUSH_NONE = 0,
+    GRPC_STREAM_COMPRESSOR_FLUSH_SYNC,
+    GRPC_STREAM_COMPRESSOR_FLUSH_FINISH,
+    GRPC_STREAM_COMPRESSOR_FLUSH_COUNT
+} grpc_stream_compressor_flush;
+
+struct grpc_stream_compressor_vtable {
+    int (*compress)(grpc_stream_compressor_context* ctx, grpc_slice_buffer* in,
+                     grpc_slice_buffer* out, size_t* output_size,
+                     size_t max_output_size, grpc_stream_compressor_flush flush);
+    int (*decompress)(grpc_stream_compressor_context* ctx,
+                       grpc_slice_buffer* in, grpc_slice_buffer* out,
+                       size_t* output_size, size_t max_output_size,
+                       int* end_of_context);
+    grpc_stream_compressor_context* (*context_create)(
+            grpc_stream_compressor_method method);
+    void (*context_destroy)(grpc_stream_compressor_context* ctx);
+
+    /*
+     * compressor name
+     */
+    const grpc_slice *name;
+};
 
 #ifdef __cplusplus
 }

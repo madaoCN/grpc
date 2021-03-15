@@ -160,15 +160,18 @@ static int compress_inner(grpc_message_compression_algorithm algorithm,
     case GRPC_MESSAGE_COMPRESS_GZIP:
       return zlib_compress(input, output, 1);
     case GRPC_MESSAGE_COMPRESS_CONFUSE:
-      // if registerd algorithm
-      const char *al_name;
-      if (grpc_message_compression_algorithm_name(GRPC_MESSAGE_COMPRESS_CONFUSE, &al_name) != 0) {
-         const grpc_message_compressor_vtable *vtable = grpc_compression_compressor(al_name);
-         if (vtable && vtable->compress) {
-           return vtable->compress(input, output);
-         }
-      }
-      return 0;
+    {
+        // if registerd algorithm
+        const char *al_name;
+        grpc_slice al_slice = grpc_slice_from_static_string(al_name);
+        if (grpc_message_compression_algorithm_name(GRPC_MESSAGE_COMPRESS_CONFUSE, &al_name) != 0) {
+            const grpc_message_compressor_vtable *vtable = grpc_compression_compressor(&al_slice);
+            if (vtable && vtable->compress) {
+                return vtable->compress(input, output);
+            }
+        }
+        return 0;
+    }
     case GRPC_MESSAGE_COMPRESS_ALGORITHMS_COUNT:
       break;
   }
@@ -195,15 +198,18 @@ int grpc_msg_decompress(grpc_message_compression_algorithm algorithm,
     case GRPC_MESSAGE_COMPRESS_GZIP:
       return zlib_decompress(input, output, 1);
     case GRPC_MESSAGE_COMPRESS_CONFUSE:
-      // if registerd algorithm
-      const char *al_name;
-      if (grpc_message_compression_algorithm_name(GRPC_MESSAGE_COMPRESS_CONFUSE, &al_name) != 0) {
-        const grpc_message_compressor_vtable *vtable = grpc_compression_compressor(al_name);
-        if (vtable && vtable->decompress) {
-          return vtable->decompress(input, output);
+    {
+        // if registerd algorithm
+        const char *al_name;
+        grpc_slice al_slice = grpc_slice_from_static_string(al_name);
+        if (grpc_message_compression_algorithm_name(GRPC_MESSAGE_COMPRESS_CONFUSE, &al_name) != 0) {
+            const grpc_message_compressor_vtable *vtable = grpc_compression_compressor(&al_slice);
+            if (vtable && vtable->decompress) {
+                return vtable->decompress(input, output);
+            }
         }
-      }
-      return copy(input, output);
+        return copy(input, output);
+    }
     case GRPC_MESSAGE_COMPRESS_ALGORITHMS_COUNT:
       break;
   }
