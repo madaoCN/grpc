@@ -246,7 +246,7 @@ void grpc_stream_compression_register_compressor(grpc_stream_compressor_vtable *
     GRPC_API_TRACE("grpc_stream_compression_register_compressor(compress=%p, decompress=%p, context_create=%p, context_destroy=%p, name:%s)", 5,
                    ((void*)(intptr_t)vtable->compress, (void*)(intptr_t)vtable->decompress,
                            (void*)(intptr_t)vtable->context_create, (void*)(intptr_t)vtable->context_destroy, grpc_slice_to_c_string(*vtable->name)));
-    GPR_ASSERT(g_number_of_message_compressors != MAX_COMPRESSORS);
+    GPR_ASSERT(g_number_of_stream_compressors != MAX_COMPRESSORS);
     g_all_of_the_stream_compressors[g_number_of_stream_compressors].compress = vtable->compress;
     g_all_of_the_stream_compressors[g_number_of_stream_compressors].decompress = vtable->decompress;
     g_all_of_the_stream_compressors[g_number_of_stream_compressors].context_create = vtable->context_create;
