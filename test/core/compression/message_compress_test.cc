@@ -334,7 +334,8 @@ static void test_tiny_data_register_compressor_compress(void) {
 
   // regster compressor
   grpc_message_compressor_vtable vtable;
-  vtable.name = "confuse";
+  grpc_slice grpcSlice = grpc_slice_from_static_string("confuse");
+  vtable.name = &grpcSlice;
   vtable.compress = compress;
   vtable.decompress = decommpress;
 

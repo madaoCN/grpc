@@ -58,9 +58,12 @@ grpc_stream_compression_context* grpc_stream_compression_context_create(
     {
         // if registerd algorithm
         const char *al_name;
-        grpc_slice al_slice = grpc_slice_from_static_string(al_name);
         if (grpc_compression_algorithm_name(GRPC_COMPRESS_STREAM_CONFUSE, &al_name) != 0) {
+            grpc_slice al_slice = grpc_slice_from_static_string(al_name);
             const grpc_stream_compressor_vtable *vtable = grpc_stream_compression_compressor(&al_slice);
+            if (vtable == nullptr) {
+                return grpc_stream_compression_identity_vtable.context_create(GRPC_STREAM_COMPRESSION_IDENTITY_COMPRESS);
+            }
             // trans to grpc_stream_compression_vtable
             grpc_stream_compression_vtable copy_vtable;
             copy_vtable.context_create = reinterpret_cast<grpc_stream_compression_context *(*)(
@@ -75,7 +78,7 @@ grpc_stream_compression_context* grpc_stream_compression_context_create(
                                                                bool *)>(vtable->decompress);
             return copy_vtable.context_create(method);
         }
-        return grpc_stream_compression_identity_vtable.context_create(method);
+        return grpc_stream_compression_identity_vtable.context_create(GRPC_STREAM_COMPRESSION_IDENTITY_COMPRESS);
     }
     default:
       gpr_log(GPR_ERROR, "Unknown stream compression method: %d", method);
