@@ -79,6 +79,8 @@ int main(int argc, char **argv) {
   printf("%lx", (unsigned long) grpc_compression_options_is_algorithm_enabled);
   printf("%lx", (unsigned long) grpc_compression_register_compressor);
   printf("%lx", (unsigned long) grpc_compression_compressor);
+  printf("%lx", (unsigned long) grpc_stream_compression_register_compressor);
+  printf("%lx", (unsigned long) grpc_stream_compression_compressor);
   printf("%lx", (unsigned long) grpc_metadata_array_init);
   printf("%lx", (unsigned long) grpc_metadata_array_destroy);
   printf("%lx", (unsigned long) grpc_call_details_init);

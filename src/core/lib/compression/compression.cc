@@ -258,7 +258,7 @@ void grpc_stream_compression_register_compressor(grpc_stream_compressor_vtable *
 const grpc_stream_compressor_vtable *grpc_stream_compression_compressor(const grpc_slice *compressor_name) {
     if (compressor_name == nullptr) {return nullptr;}
     static grpc_stream_compressor_vtable *vtable = nullptr;
-    for (int i = 0; i < g_number_of_message_compressors; ++i) {
+    for (int i = 0; i < g_number_of_stream_compressors; ++i) {
         vtable = &g_all_of_the_stream_compressors[i];
         if (grpc_slice_eq(*vtable->name, *compressor_name)) {
             return vtable;
