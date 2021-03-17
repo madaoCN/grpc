@@ -104,7 +104,7 @@ int grpc_stream_compression_method_parse(
     return 1;
   } else if (grpc_slice_eq_static_interned(value, GRPC_MDSTR_CONFUSE)) {
     *method = is_compress ? GRPC_STREAM_COMPRESSION_CONFUSE_COMPRESS
-                            : GRPC_STREAM_COMPRESSION_CONFUSE_DECOMPRESS;
+                          : GRPC_STREAM_COMPRESSION_CONFUSE_DECOMPRESS;
     return 1;
   } else {
     return 0;

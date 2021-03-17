@@ -163,9 +163,9 @@ static int compress_inner(grpc_message_compression_algorithm algorithm,
     {
         // if registerd algorithm
         const char *al_name;
-        grpc_slice al_slice = grpc_slice_from_static_string(al_name);
         if (grpc_message_compression_algorithm_name(GRPC_MESSAGE_COMPRESS_CONFUSE, &al_name) != 0) {
-            const grpc_message_compressor_vtable *vtable = grpc_compression_compressor(&al_slice);
+          grpc_slice al_slice = grpc_slice_from_static_string(al_name);
+          const grpc_message_compressor_vtable *vtable = grpc_compression_compressor(&al_slice);
             if (vtable && vtable->compress) {
                 return vtable->compress(input, output);
             }
@@ -201,9 +201,9 @@ int grpc_msg_decompress(grpc_message_compression_algorithm algorithm,
     {
         // if registerd algorithm
         const char *al_name;
-        grpc_slice al_slice = grpc_slice_from_static_string(al_name);
         if (grpc_message_compression_algorithm_name(GRPC_MESSAGE_COMPRESS_CONFUSE, &al_name) != 0) {
-            const grpc_message_compressor_vtable *vtable = grpc_compression_compressor(&al_slice);
+          grpc_slice al_slice = grpc_slice_from_static_string(al_name);
+          const grpc_message_compressor_vtable *vtable = grpc_compression_compressor(&al_slice);
             if (vtable && vtable->decompress) {
                 return vtable->decompress(input, output);
             }

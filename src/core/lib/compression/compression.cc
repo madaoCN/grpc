@@ -228,11 +228,10 @@ void grpc_compression_register_compressor(grpc_message_compressor_vtable *vtable
 const grpc_message_compressor_vtable *grpc_compression_compressor(const grpc_slice *compressor_name) {
 
   if (compressor_name == nullptr) {return nullptr;}
-    static grpc_message_compressor_vtable *vtable = nullptr;
     for (int i = 0; i < g_number_of_message_compressors; ++i) {
-        vtable = &g_all_of_the_message_compressors[i];
-        if (grpc_slice_eq(*vtable->name, *compressor_name)) {
-          return vtable;
+        grpc_message_compressor_vtable vtable = g_all_of_the_message_compressors[i];
+        if (grpc_slice_eq(*vtable.name, *compressor_name)) {
+          return &g_all_of_the_message_compressors[i];
         }
   }
   return nullptr;
@@ -261,7 +260,7 @@ const grpc_stream_compressor_vtable *grpc_stream_compression_compressor(const gr
     for (int i = 0; i < g_number_of_stream_compressors; ++i) {
         vtable = &g_all_of_the_stream_compressors[i];
         if (grpc_slice_eq(*vtable->name, *compressor_name)) {
-            return vtable;
+            return &g_all_of_the_stream_compressors[i];
         }
     }
     return nullptr;
